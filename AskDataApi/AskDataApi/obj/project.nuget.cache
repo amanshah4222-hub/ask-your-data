@@ -1,0 +1,40 @@
+{
+  "version": 2,
+  "dgSpecHash": "N+vN4vkRdbI=",
+  "success": false,
+  "projectFilePath": "/workspaces/ask-your-data/AskDataApi/AskDataApi/AskDataApi.csproj",
+  "expectedPackageFiles": [
+    "/home/codespace/.nuget/packages/dapper/2.1.35/dapper.2.1.35.nupkg.sha512",
+    "/home/codespace/.nuget/packages/microsoft.aspnetcore.authentication.jwtbearer/9.0.0-preview.6.24328.4/microsoft.aspnetcore.authentication.jwtbearer.9.0.0-preview.6.24328.4.nupkg.sha512",
+    "/home/codespace/.nuget/packages/microsoft.extensions.apidescription.server/6.0.5/microsoft.extensions.apidescription.server.6.0.5.nupkg.sha512",
+    "/home/codespace/.nuget/packages/microsoft.extensions.dependencyinjection.abstractions/8.0.0/microsoft.extensions.dependencyinjection.abstractions.8.0.0.nupkg.sha512",
+    "/home/codespace/.nuget/packages/microsoft.extensions.logging.abstractions/8.0.0/microsoft.extensions.logging.abstractions.8.0.0.nupkg.sha512",
+    "/home/codespace/.nuget/packages/microsoft.openapi/1.6.14/microsoft.openapi.1.6.14.nupkg.sha512",
+    "/home/codespace/.nuget/packages/npgsql/8.0.3/npgsql.8.0.3.nupkg.sha512",
+    "/home/codespace/.nuget/packages/swashbuckle.aspnetcore/6.6.2/swashbuckle.aspnetcore.6.6.2.nupkg.sha512",
+    "/home/codespace/.nuget/packages/swashbuckle.aspnetcore.swagger/6.6.2/swashbuckle.aspnetcore.swagger.6.6.2.nupkg.sha512",
+    "/home/codespace/.nuget/packages/swashbuckle.aspnetcore.swaggergen/6.6.2/swashbuckle.aspnetcore.swaggergen.6.6.2.nupkg.sha512",
+    "/home/codespace/.nuget/packages/swashbuckle.aspnetcore.swaggerui/6.6.2/swashbuckle.aspnetcore.swaggerui.6.6.2.nupkg.sha512"
+  ],
+  "logs": [
+    {
+      "code": "NU1603",
+      "level": "Warning",
+      "warningLevel": 1,
+      "message": "AskDataApi depends on Microsoft.AspNetCore.Authentication.JwtBearer (>= 9.0.0-preview.6.24327.7) but Microsoft.AspNetCore.Authentication.JwtBearer 9.0.0-preview.6.24327.7 was not found. An approximate best match of Microsoft.AspNetCore.Authentication.JwtBearer 9.0.0-preview.6.24328.4 was resolved.",
+      "libraryId": "Microsoft.AspNetCore.Authentication.JwtBearer",
+      "targetGraphs": [
+        "net8.0"
+      ]
+    },
+    {
+      "code": "NU1202",
+      "level": "Error",
+      "message": "Package Microsoft.AspNetCore.Authentication.JwtBearer 9.0.0-preview.6.24328.4 is not compatible with net8.0 (.NETCoreApp,Version=v8.0). Package Microsoft.AspNetCore.Authentication.JwtBearer 9.0.0-preview.6.24328.4 supports: net9.0 (.NETCoreApp,Version=v9.0)",
+      "libraryId": "Microsoft.AspNetCore.Authentication.JwtBearer",
+      "targetGraphs": [
+        "net8.0"
+      ]
+    }
+  ]
+}
