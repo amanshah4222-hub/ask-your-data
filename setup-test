@@ -1,0 +1,29 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# ---- config (adjust if your names/paths differ) ----
+SOLUTION_NAME="ask-your-data"
+API_PROJ="src/AskDataApi/AskDataApi.csproj"
+SOLUTION_FILE="${SOLUTION_NAME}.sln"
+TEST_DIR="tests/AskDataApi.Tests"
+TEST_PROJ="${TEST_DIR}/AskDataApi.Tests.csproj"
+
+#  ensure solution exists 
+if [[ ! -f "${SOLUTION_FILE}" ]]; then
+  dotnet new sln -n "${SOLUTION_NAME}"
+fi
+
+#  ensure test project exists 
+if [[ ! -f "${TEST_PROJ}" ]]; then
+  mkdir -p "${TEST_DIR}"
+  dotnet new xunit -n "AskDataApi.Tests" -o "${TEST_DIR}"
+fi
+
+#  add projects to solution 
+echo "Adding project to solution"
+dotnet sln "${SOLUTION_FILE}" add "${TEST_PROJ}" 2>/dev/null || true
+
+#  add test to api project reference 
+echo "Adding project reference tests to api"
+dotnet add "${TEST_PROJ}" reference "${API_PROJ}" 2>/dev/null || true
+
