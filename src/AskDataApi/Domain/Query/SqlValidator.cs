@@ -56,7 +56,7 @@ public class SqlValidator
             return new SqlValidationResult(false, "", notes, errors);
 
         // Ensure LIMIT cap exists 
-        if (!Regex.IsMatch(lowered, @"\blimit\s+\d+", RegexOptions.IgnoreCase))
+        if (!Regex.IsMatch(lowered, @"\blimit\b", RegexOptions.IgnoreCase))
         {
             normalized += $" limit {_maxRows}";
             notes.Add($"LIMIT_APPLIED:{_maxRows}");

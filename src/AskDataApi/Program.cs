@@ -121,6 +121,8 @@ app.MapGet("/me", (ClaimsPrincipal user) =>
 // Protected: ask about data
 app.MapPost("/ask", async (AskRequest req, SqlValidator validator, QueryOrchestrator exec) =>
 {
+    Console.WriteLine("ask api hit");
+
     if (string.IsNullOrWhiteSpace(req.Question))
         return Results.BadRequest(new { error = "QUESTION_REQUIRED" });
 
@@ -138,8 +140,10 @@ app.MapPost("/ask", async (AskRequest req, SqlValidator validator, QueryOrchestr
 
     try
     {
+        Console.WriteLine("try block hit");
         using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(20));
         var (rows, elapsed) = await exec.ExecuteAsync(validation.RewrittenSql, prompt.Parameters, cts.Token);
+        Console.WriteLine("response returned");
 
         var explain = new
         {
