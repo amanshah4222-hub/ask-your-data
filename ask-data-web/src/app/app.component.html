@@ -1,22 +1,25 @@
 <div class="shell">
-  <header class="topbar">
-    <h1>AskData UI</h1>
-    <span class="tag">enterprise</span>
+   <header class="topbar">
+    <h1>Ask Data</h1>
+    <span class="tag">internal</span>
   </header>
-
   <section class="ask-box">
     <app-ask-input (ask)="onAsk($event)" [busy]="busy()"></app-ask-input>
-    <p class="error" *ngIf="error()">{{ error() }}</p>
+    <p *ngIf="error()" class="error">{{ error() }}</p>
   </section>
 
   <section class="content">
+    <!-- table -->
     <app-result-grid
       *ngIf="rows().length"
       [columns]="columns()"
-      [rows]="rows()"></app-result-grid>
+      [rows]="rows()">
+    </app-result-grid>
 
+    <!-- explain -->
     <app-explain-panel
       *ngIf="explain()"
-      [explain]="explain()"></app-explain-panel>
+      [explain]="explain()">
+    </app-explain-panel>
   </section>
 </div>

@@ -1,5 +1,9 @@
+// src/app/app.component.ts
 import { Component, signal } from '@angular/core';
+import { NgIf, NgFor } from '@angular/common';   // 👈 add this
 import { ApiService } from './core/app.service';
+
+// child components
 import { AskInputComponent } from './ask-input/ask-input.component';
 import { ResultGridComponent } from './result-grid/result-grid.component';
 import { ExplainPanelComponent } from './explain-panel/explain-panel.component';
@@ -9,10 +13,16 @@ import { ExplainPanelComponent } from './explain-panel/explain-panel.component';
   standalone: true,
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.scss'],
-  imports: [AskInputComponent, ResultGridComponent, ExplainPanelComponent],
+  // 👇 IMPORTANT: add NgIf (and NgFor if you ever ngFor here)
+  imports: [
+    NgIf,
+    NgFor,
+    AskInputComponent,
+    ResultGridComponent,
+    ExplainPanelComponent
+  ],
 })
 export class AppComponent {
-  title = 'Ask Data';
   busy = signal(false);
   rows = signal<any[]>([]);
   columns = signal<string[]>([]);
@@ -22,21 +32,20 @@ export class AppComponent {
   constructor(private api: ApiService) {}
 
   onAsk(question: string) {
-    if (!question.trim()) return;
     this.busy.set(true);
     this.error.set(null);
 
     this.api.ask(question, 10).subscribe({
       next: (res) => {
-        const data = res.data || [];
+        const data = res?.data ?? [];
         this.rows.set(data);
         this.columns.set(data.length ? Object.keys(data[0]) : []);
-        this.explain.set(res.explain);
+        this.explain.set(res?.explain ?? null);
       },
-      error: (err) => {
-        this.error.set(err?.error?.error ?? 'Something went wrong');
+      error: () => {
+        this.error.set('Request failed');
       },
-      complete: () => this.busy.set(false)
+      complete: () => this.busy.set(false),
     });
   }
 }
