@@ -78,9 +78,13 @@
                 "input": "public"
               }
             ],
+             "polyfills": [
+                "zone.js"
+            ],
             "styles": [
               "src/styles.css"
-            ]
+            ],
+            "karmaConfig": "karma.conf.js"
           }
         }
       }
