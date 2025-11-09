@@ -1,0 +1,4 @@
+{
+  "name": "Ask-Your-Data",
+  "postCreateCommand": "bash -lc 'sudo apt-get update && sudo apt-get install -y libatk1.0-0t64 libatk-bridge2.0-0t64 libx11-xcb1 libxcomposite1 libxrandr2 libxdamage1 libxkbcommon0 libcups2t64 libdrm2 libgbm1 libasound2t64 libgtk-3-0t64 libnspr4 libnss3 && cd /workspaces/ask-your-data/ask-data-web && npm install --legacy-peer-deps && npm install -D puppeteer --legacy-peer-deps && PUPPETEER_SKIP_DOWNLOAD=false npx puppeteer browsers install chrome'"
+}

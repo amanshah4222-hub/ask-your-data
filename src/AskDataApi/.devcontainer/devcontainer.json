@@ -1,4 +1,0 @@
-{
-  "name": "Ask-Your-Data",
-  "postCreateCommand": "sudo apt-get update && sudo apt-get install -y libatk1.0-0t64 libatk-bridge2.0-0t64 libx11-xcb1 libxcomposite1 libxrandr2 libxdamage1 libxkbcommon0 libcups2t64 libdrm2 libgbm1 libasound2t64 libgtk-3-0t64 && cd /workspaces/ask-your-data/ask-data-web && npm install && npm install -D puppeteer --legacy-peer-deps"
-}
