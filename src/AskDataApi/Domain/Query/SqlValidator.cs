@@ -26,7 +26,6 @@ public class SqlValidator
             return new SqlValidationResult(false, "", notes, new() { "EMPTY_SQL" });
 
         var s = sql.Trim();
-        // Normalize whitespace 
         var normalized = MultiWhitespace.Replace(s, " ").Trim();
 
         // No semicolons inside
@@ -42,7 +41,6 @@ public class SqlValidator
             errors.Add("ONLY_SELECT_ALLOWED");
         }
 
-        // Block obvious dangerous tokens (substring match, case-insensitive)
         var lowered = normalized.ToLowerInvariant();
         foreach (var bad in Forbidden)
         {

@@ -8,6 +8,7 @@ using Microsoft.OpenApi.Models;
 using System.Text.Json;
 using Microsoft.AspNetCore.HttpOverrides;
 using AskDataApi.Helpers;
+using AskDataApi.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -78,6 +79,9 @@ builder.Services.AddSingleton<QueryOrchestrator>(sp =>
     return new QueryOrchestrator(connFactory, TimeSpan.FromSeconds(15));
 });
 
+builder.Services.AddSingleton<ISchemaService, SchemaService>();
+builder.Services.AddHttpClient<OpenAiSqlService>();
+
 var app = builder.Build();
 app.UseCors("fe");
 app.UseSwagger();
@@ -123,56 +127,60 @@ app.MapPost("/ask", async (
     AskRequest req,
     SqlValidator validator,
     QueryOrchestrator exec,
-    Func<NpgsqlConnection> connFactory,
-    ClaimsPrincipal user) =>
+ Func<NpgsqlConnection> connFactory,
+    ClaimsPrincipal user,
+    OpenAiSqlService llm) =>
 {
     if (string.IsNullOrWhiteSpace(req.Question))
         return Results.BadRequest(new { error = "QUESTION_REQUIRED" });
 
-    var prompt = PromptBuilder.Build(req.Question, req.Limit);
-    var validation = validator.Validate(prompt.Sql);
+    var (rawSql, conf) = await llm.BuildSqlAsync(req.Question, req.Limit);
 
+    var validation = validator.Validate(rawSql);
     if (!validation.IsValid)
     {
-        // log even bad attempts
-        await AuditHelper.LogAuditAsync(connFactory, req.Question, prompt.Sql, "", prompt.Confidence, 0, user, validation.Notes, "SQL_NOT_ALLOWED");
-        return Results.BadRequest(new { error = "SQL_NOT_ALLOWED", details = validation.Errors });
-    }
+        await AuditHelper.LogAuditAsync(connFactory, req.Question, rawSql, "", conf, 0, user, validation.Notes, "SQL_NOT_ALLOWED");
+        return Results.BadRequest(new
+        {
+            error = "SQL_NOT_ALLOWED",
+            details = validation.Errors,
+            llmSql = rawSql
+        });
 
+       
+    }
     try
     {
-        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(20));
-        var (rows, elapsed) = await exec.ExecuteAsync(validation.RewrittenSql, prompt.Parameters, cts.Token);
+    using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(20));
+    var (rows, elapsed) = await exec.ExecuteAsync(validation.RewrittenSql, null, cts.Token);
 
-        var explain = new
-        {
-            question = req.Question,
-            generatedSql = prompt.Sql,
-            rewrittenSql = validation.RewrittenSql,
-            confidence = prompt.Confidence,
-            notes = validation.Notes,
-            elapsedMs = (int)elapsed.TotalMilliseconds,
-            parameters = prompt.Parameters
-        };
+    var explain = new
+    {
+        question = req.Question,
+        generatedSql = rawSql,
+        rewrittenSql = validation.RewrittenSql,
+        confidence = conf,
+        notes = validation.Notes,
+        elapsedMs = (int)elapsed.TotalMilliseconds,
+    };
 
-        // 👇 write audit
-        await AuditHelper.LogAuditAsync(
+     await AuditHelper.LogAuditAsync(
             connFactory,
             req.Question,
-            prompt.Sql,
+            rawSql,
             validation.RewrittenSql,
-            prompt.Confidence,
+            conf,
             (int)elapsed.TotalMilliseconds,
             user,
             validation.Notes,
             null);
 
-        return Results.Ok(new AskResponse(rows, explain));
+    return Results.Ok(new AskResponse(rows, explain));
     }
     catch (Exception ex)
     {
-        await AuditHelper.LogAuditAsync(connFactory, req.Question, prompt.Sql, validation.RewrittenSql,
-            prompt.Confidence, 0, user, validation.Notes, ex.Message);
+        await AuditHelper.LogAuditAsync(connFactory, req.Question, rawSql, validation.RewrittenSql,
+            conf, 0, user, validation.Notes, ex.Message);
         return Results.Problem(detail: ex.Message);
     }
 });
