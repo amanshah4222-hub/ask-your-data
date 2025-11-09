@@ -1,13 +1,13 @@
 using System.Security.Claims;
 using Dapper;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.IdentityModel.Tokens;
 using Npgsql;
 using AskDataApi.Domain.Nl;
 using AskDataApi.Domain.Query;
 using Microsoft.OpenApi.Models;
 using System.Text.Json;
 using Microsoft.AspNetCore.HttpOverrides;
+using AskDataApi.Helpers;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -119,10 +119,13 @@ app.MapGet("/me", (ClaimsPrincipal user) =>
 // .RequireAuthorization();
 
 // Protected: ask about data
-app.MapPost("/ask", async (AskRequest req, SqlValidator validator, QueryOrchestrator exec) =>
+app.MapPost("/ask", async (
+    AskRequest req,
+    SqlValidator validator,
+    QueryOrchestrator exec,
+    Func<NpgsqlConnection> connFactory,
+    ClaimsPrincipal user) =>
 {
-    Console.WriteLine("ask api hit");
-
     if (string.IsNullOrWhiteSpace(req.Question))
         return Results.BadRequest(new { error = "QUESTION_REQUIRED" });
 
@@ -131,19 +134,15 @@ app.MapPost("/ask", async (AskRequest req, SqlValidator validator, QueryOrchestr
 
     if (!validation.IsValid)
     {
-        return Results.BadRequest(new
-        {
-            error = "SQL_NOT_ALLOWED",
-            details = validation.Errors
-        });
+        // log even bad attempts
+        await AuditHelper.LogAuditAsync(connFactory, req.Question, prompt.Sql, "", prompt.Confidence, 0, user, validation.Notes, "SQL_NOT_ALLOWED");
+        return Results.BadRequest(new { error = "SQL_NOT_ALLOWED", details = validation.Errors });
     }
 
     try
     {
-        Console.WriteLine("try block hit");
         using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(20));
         var (rows, elapsed) = await exec.ExecuteAsync(validation.RewrittenSql, prompt.Parameters, cts.Token);
-        Console.WriteLine("response returned");
 
         var explain = new
         {
@@ -156,13 +155,40 @@ app.MapPost("/ask", async (AskRequest req, SqlValidator validator, QueryOrchestr
             parameters = prompt.Parameters
         };
 
+        // 👇 write audit
+        await AuditHelper.LogAuditAsync(
+            connFactory,
+            req.Question,
+            prompt.Sql,
+            validation.RewrittenSql,
+            prompt.Confidence,
+            (int)elapsed.TotalMilliseconds,
+            user,
+            validation.Notes,
+            null);
+
         return Results.Ok(new AskResponse(rows, explain));
     }
     catch (Exception ex)
     {
+        await AuditHelper.LogAuditAsync(connFactory, req.Question, prompt.Sql, validation.RewrittenSql,
+            prompt.Confidence, 0, user, validation.Notes, ex.Message);
         return Results.Problem(detail: ex.Message);
     }
 });
+
+// Audit endpoint
+app.MapGet("/audit", async (Func<NpgsqlConnection> connFactory) =>
+{
+    await using var conn = connFactory();
+    var rows = await conn.QueryAsync(@"
+        select id, asked_at, question, user_email, confidence, elapsed_ms
+        from ask_audit
+        order by asked_at desc
+        limit 50;
+    ");
+    return Results.Ok(rows);
+}); 
 
 
 app.Run();
