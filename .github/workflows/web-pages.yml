@@ -19,7 +19,7 @@ jobs:
           node-version: '20'
       - run: npm ci --legacy-peer-deps
         working-directory: ./ask-data-web
-      - run: npm run build -- --configuration=production --base-href=/
+      - run: npm run build -- --configuration=production --base-href=/ask-your-data/
         working-directory: ./ask-data-web
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
