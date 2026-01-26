@@ -1,4 +1,4 @@
-# AskData — Natural Language Interface for Live Databases
+# AskData: Natural Language Interface for Live Databases
 
 AskData is a full-stack internal analytics platform that enables users to query live operational data using natural language instead of SQL. It is designed to reduce the reliance on technical teams for everyday reporting while preserving the reliability, governance, and security required in enterprise systems. The application is built using an Angular single-page frontend, an ASP.NET Core Web API backend, and a serverless Neon PostgreSQL database, forming a modern, cloud-native architecture suitable for internal tools.
 
